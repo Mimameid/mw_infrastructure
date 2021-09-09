@@ -1,0 +1,199 @@
+version: "3"
+services:
+  api:
+    container_name: os_api
+    build: ./api/
+    ports:
+      - 3333:3333
+    environment:
+      - ELASTIC_URL=${ELASTIC_URL}
+      - HTTP_PORT=${HTTP_PORT}
+      - NODE_ENV=${NODE_ENV}
+    depends_on:
+      - elasticsearch1
+  elasticsearch1:
+    container_name: es_node_1
+    build: ./elastic/
+    environment:
+      # Default is 1GB, decrease due to low AWS instance
+      - "ES_JAVA_OPTS=-Xms512m -Xmx512m"
+    ports:
+      - 9200:9200
+      - 9300:9300
+    volumes:
+      - es-node-1-data:${ES_PATH}/data
+      - es-node-1-logs:${ES_PATH}/logs
+      - es-snapshot:/usr/share/elasticsearch/backup
+    ulimits:
+      memlock:
+        soft: -1
+        hard: -1
+  elasticsearch2:
+    container_name: es_node_2
+    build: ./elastic/
+    depends_on:
+      - elasticsearch1
+    environment:
+      # Default is 1GB, decrease due to low AWS instance
+      - "ES_JAVA_OPTS=-Xms512m -Xmx512m"
+    volumes:
+      - es-node-2-data:${ES_PATH}/data
+      - es-node-2-logs:${ES_PATH}/logs
+      - es-snapshot:/usr/share/elasticsearch/backup
+    ulimits:
+      memlock:
+        soft: -1
+        hard: -1
+  elasticsearch3:
+    container_name: es_node_3
+    build: ./elastic/
+    depends_on:
+      - elasticsearch1
+    environment:
+      # Default is 1GB, decrease due to low AWS instance
+      - "ES_JAVA_OPTS=-Xms512m -Xmx512m"
+    volumes:
+      - es-node-3-data:${ES_PATH}/data
+      - es-node-3-logs:${ES_PATH}/logs
+      - es-snapshot:/usr/share/elasticsearch/backup
+    ulimits:
+      memlock:
+        soft: -1
+        hard: -1
+  kibana:
+    container_name: os_kibana
+    image: kibana:7.12.0
+    ports:
+      - 5601:5601
+    depends_on:
+      - elasticsearch1
+    environment:
+      - ELASTICSEARCH_USERNAME=${ES_USERNAME}
+      - ELASTICSEARCH_PASSWORD=${ES_PASSWORD}
+    volumes:
+      - kibana-data:${KIBANA_PATH}/data
+    
+  # ------------------------- auth -------------------------
+  auth_owner:
+    container_name: os_auth_owner
+    image: supabase/gotrue:latest
+    ports:
+      - ${AUTH_PORT_OWNER}:${AUTH_PORT_OWNER}
+    depends_on:
+      - postgres_owner
+    environment:
+      DATABASE_URL: "postgres://postgres:${POSTGRES_PASSWORD}@postgres_owner:${POSTGRES_PORT_OWNER}/postgres?sslmode=disable"
+      GOTRUE_DB_DRIVER: postgres
+      DB_NAMESPACE: owner
+
+      GOTRUE_API_HOST: 0.0.0.0
+      PORT: ${AUTH_PORT_OWNER}
+
+      GOTRUE_OPERATOR_TOKEN: ${OPERATOR_TOKEN}
+      GOTRUE_JWT_SECRET: ${JWT_SECRET}
+      GOTRUE_JWT_EXP: 3600
+      GOTRUE_JWT_DEFAULT_GROUP_NAME: authenticated
+
+      GOTRUE_SMTP_HOST: ${SMTP_HOST}
+      GOTRUE_SMTP_PORT: ${SMTP_PORT}
+      GOTRUE_SMTP_USER: ${SMTP_USER}
+      GOTRUE_SMTP_PASS: ${SMTP_PASS}
+      GOTRUE_SMTP_ADMIN_EMAIL: ${SMTP_ADMIN_EMAIL}
+
+      GOTRUE_DISABLE_SIGNUP: "true"
+      GOTRUE_SITE_URL: ${API_URL}
+      GOTRUE_MAILER_URLPATHS_INVITE: /auth/v1/verify
+      GOTRUE_MAILER_URLPATHS_CONFIRMATION: /auth/v1/verify
+      GOTRUE_MAILER_URLPATHS_RECOVERY: /auth/v1/verify
+      GOTRUE_MAILER_AUTOCONFIRM: "true"
+      LOG_LEVEL: DEBUG
+  auth_user:
+    container_name: os_auth_user
+    image: supabase/gotrue:latest
+    ports:
+      - ${AUTH_PORT_USER}:${AUTH_PORT_USER}
+    depends_on:
+      - postgres_user
+    environment:
+      DATABASE_URL: "postgres://postgres:${POSTGRES_PASSWORD}@postgres_user:${POSTGRES_PORT_USER}/postgres?sslmode=disable"
+      GOTRUE_DB_DRIVER: postgres
+      DB_NAMESPACE: user
+
+      API_EXTERNAL_URL: http://localhost:8000
+      GOTRUE_API_HOST: 0.0.0.0
+      PORT: ${AUTH_PORT_USER}
+
+      GOTRUE_OPERATOR_TOKEN: ${OPERATOR_TOKEN}
+      GOTRUE_JWT_SECRET: ${JWT_SECRET}
+      GOTRUE_JWT_EXP: 3600
+      GOTRUE_JWT_DEFAULT_GROUP_NAME: authenticated
+
+      GOTRUE_SMTP_HOST: ${SMTP_HOST}
+      GOTRUE_SMTP_PORT: ${SMTP_PORT}
+      GOTRUE_SMTP_USER: ${SMTP_USER}
+      GOTRUE_SMTP_PASS: ${SMTP_PASS}
+      GOTRUE_SMTP_ADMIN_EMAIL: ${SMTP_ADMIN_EMAIL}
+
+      GOTRUE_DISABLE_SIGNUP: "false"
+      GOTRUE_SITE_URL: http://localhost:8000
+      GOTRUE_MAILER_URLPATHS_INVITE: /auth/v1/verify
+      GOTRUE_MAILER_URLPATHS_CONFIRMATION: /auth/v1/verify
+      GOTRUE_MAILER_URLPATHS_RECOVERY: /auth/v1/verify
+      GOTRUE_MAILER_AUTOCONFIRM: "false"
+      LOG_LEVEL: DEBUG
+  postgres_owner:
+    container_name: os_postgres_owner
+    build: ./postgres
+    expose:
+      - ${POSTGRES_PORT_OWNER}
+    command:
+      - postgres
+      - -c
+      - wal_level=logical
+    environment:
+      POSTGRES_DB: postgres
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+    command: -p ${POSTGRES_PORT_OWNER}
+    volumes:
+      - postgres-owner-data:/var/lib/postgresql/data
+  postgres_user:
+    container_name: os_postgres_user
+    build: ./postgres
+    expose:
+      - ${POSTGRES_PORT_USER}
+    command:
+      - postgres
+      - -c
+      - wal_level=logical
+    environment:
+      POSTGRES_DB: postgres
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+    command: -p ${POSTGRES_PORT_USER}
+    volumes:
+      - postgres-user-data:/var/lib/postgresql/data
+  pgadmin:
+    container_name: os_pgadmin
+    image: dpage/pgadmin4
+    environment:
+      PGADMIN_DEFAULT_EMAIL: ${PGADMIN_EMAIL}
+      PGADMIN_DEFAULT_PASSWORD: ${PGADMIN_PASSWORD}
+      PGADMIN_CONFIG_SERVER_MODE: "False"
+    volumes:
+      - pgadmin-data:/var/lib/pgadmin
+
+    ports:
+      - "${PGADMIN_PORT:-5050}:80"
+volumes:
+  es-node-1-data:
+  es-node-1-logs:
+  es-node-2-data:
+  es-node-2-logs:
+  es-node-3-data:
+  es-node-3-logs:
+  es-snapshot:
+  kibana-data:
+  postgres-owner-data:
+  postgres-user-data:
+  pgadmin-data:

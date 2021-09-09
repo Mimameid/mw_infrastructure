@@ -1,0 +1,9 @@
+PUT /restaurants
+{
+  "settings": {
+    "index": {
+      "number_of_shards": 4,
+      "number_of_replicas": 2
+    }
+  }
+}

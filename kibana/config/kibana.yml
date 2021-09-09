@@ -1,0 +1,23 @@
+server.name: "0.0.0.0"
+server.host: "0"
+elasticsearch.hosts: ["https://es_node_1:9200"]
+
+# --------------------------------- monitoring -------------------------------
+
+# monitoring.ui.container.elasticsearch.enabled: true
+# monitoring.ui.elasticsearch.ssl.
+
+# --------------------------------- security ---------------------------------
+
+# # inbound
+# server.ssl.enabled: true
+# server.ssl.key: /usr/share/kibana/config/certs/os_kibana.key
+# server.ssl.certificate: /usr/share/kibana/config/certs/os_kibana.crt
+# server.ssl.certificateAuthorities: ["/usr/share/kibana/config/certs/ca_root.crt"]
+
+# outbound
+# elasticsearch.ssl.key: /usr/share/kibana/config/certs/os_kibana.key
+# elasticsearch.ssl.certificate: /usr/share/kibana/config/certs/os_kibana.crt
+elasticsearch.ssl.verificationMode: certificate
+elasticsearch.ssl.certificateAuthorities: /usr/share/kibana/config/certs/elasticsearch-ca.pem
+xpack.security.encryptionKey: 5o43wcbr3f83ow3wsyv7ph9fh8badm65

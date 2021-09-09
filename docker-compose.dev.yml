@@ -1,0 +1,16 @@
+version: "3"
+services:
+  elasticsearch1:
+    volumes:
+      - ./elastic/config_1/elasticsearch.yml:${ES_PATH}/config/elasticsearch.yml
+  elasticsearch2:
+    volumes:
+      - ./elastic/config_2/elasticsearch.yml:${ES_PATH}/config/elasticsearch.yml
+  elasticsearch3:
+    volumes:
+      - ./elastic/config_2/elasticsearch.yml:${ES_PATH}/config/elasticsearch.yml
+  kibana:
+    depends_on:
+      - elasticsearch1
+    volumes:
+      - ./kibana/config/kibana_dev.yml:${KIBANA_PATH}/config/kibana.yml

@@ -1,0 +1,27 @@
+version: "3"
+services:
+  droneio:
+    image: drone/drone:1.3.1
+    container_name: drone_io
+    restart: always
+    ports:
+      - 80:80
+      - 443:443
+    volumes:
+      - drone-server-data:/var/lib/drone/
+    environment:
+      # - DRONE_RPC_SERVER=drone-server           # undocumented - this is read but I don't know the difference to DRONE_RPC_HOST
+      # - DRONE_RPC_HOST=drone-server:580         # according to docs hostname and port without protocol. Not shure if this is correct -> I guess this is the reason, why the runner dowsen't work
+      - DRONE_RPC_PROTO=https # protocoll http or https (default https)
+      - DRONE_LOGS_TEXT=true # logging - same as on server (see above)
+      - DRONE_GITHUB_CLIENT_ID=2798581b5ededd5ac7d1
+      - DRONE_GITHUB_CLIENT_SECRET=18504211234c322826240464abd249ea8034c4e2
+      - DRONE_RPC_SECRET={{9884f81a95226d3a06520d7822bc3e2b}}
+      - DRONE_SERVER_HOST={{35.156.213.42}}
+      - DRONE_SERVER_PROTO=https
+      - DRONE_TLS_AUTOCERT=true
+      - DRONE_USER_FILTER=Mimameid
+      - DRONE_USER_CREATE=username:Mimameid,admin:true
+      - DRONE_GITHUB_SKIP_VERIFY=true
+volumes:
+  drone-server-data:

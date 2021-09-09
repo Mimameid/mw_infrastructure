@@ -1,0 +1,30 @@
+cluster.name: os-docker-cluster
+cluster.initial_master_nodes: es_node_1
+
+node.name: es_node_3
+node.master: true
+
+network.host: 0
+bootstrap.memory_lock: true
+discovery.seed_hosts: ["es_node_1"]
+# licensing
+xpack.license.self_generated.type: basic
+
+# --------------------------------- SLM (Snapshot Lifecycle Management) -------------------------------
+path.repo: /usr/share/elasticsearch/backup
+# --------------------------------- security ---------------------------------
+# i believe using ssl on one machine between microservices doesn't offer much
+# xpack.security.enabled: true
+
+# ## inter cluster communication
+# xpack.security.transport.ssl.enabled: true
+# xpack.security.transport.ssl.verification_mode: certificate
+# xpack.security.transport.ssl.key: /usr/share/elasticsearch/config/certs/es_node_3.key
+# xpack.security.transport.ssl.certificate: /usr/share/elasticsearch/config/certs/es_node_3.crt
+# xpack.security.transport.ssl.certificate_authorities: ["/usr/share/elasticsearch/config/certs/ca_root.crt"]
+
+# ## inbound communication
+# xpack.security.http.ssl.enabled: true
+# xpack.security.http.ssl.verification_mode: certificate
+# xpack.security.http.ssl.keystore.path: /usr/share/elasticsearch/config/certs/es_node_3_http.p12
+

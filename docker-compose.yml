@@ -72,15 +72,17 @@ services:
       - ELASTICSEARCH_PASSWORD=${ES_PASSWORD}
     volumes:
       - kibana-data:${KIBANA_PATH}/data
-    
+
   # ------------------------- auth -------------------------
   auth_owner:
     container_name: os_auth_owner
-    image: supabase/gotrue:latest
+    build: ./gotrue/
     ports:
       - ${AUTH_PORT_OWNER}:${AUTH_PORT_OWNER}
     depends_on:
       - postgres_owner
+    volumes:
+      - ./gotrue/templates/:/home/netlify/templates
     environment:
       DATABASE_URL: "postgres://postgres:${POSTGRES_PASSWORD}@postgres_owner:${POSTGRES_PORT_OWNER}/postgres?sslmode=disable"
       GOTRUE_DB_DRIVER: postgres
@@ -99,17 +101,19 @@ services:
       GOTRUE_SMTP_USER: ${SMTP_USER}
       GOTRUE_SMTP_PASS: ${SMTP_PASS}
       GOTRUE_SMTP_ADMIN_EMAIL: ${SMTP_ADMIN_EMAIL}
+      GOTRUE_SMTP_SENDER_NAME: ${SMTP_SENDER_NAME}
+      GOTRUE_MAILER_SUBJECTS_INVITE: ${MAILER_SUBJECTS_INVITE}
+      GOTRUE_MAILER_SUBJECTS_CONFIRMATION: ${MAILER_SUBJECTS_CONFIRMATION}
+      GOTRUE_MAILER_TEMPLATES_INVITE: http://localhost:9998/templates/invite.html
 
-      GOTRUE_DISABLE_SIGNUP: "true"
-      GOTRUE_SITE_URL: ${API_URL}
+      GOTRUE_SITE_URL: ${GOTRUE_SITE_URL}
       GOTRUE_MAILER_URLPATHS_INVITE: /auth/v1/verify
       GOTRUE_MAILER_URLPATHS_CONFIRMATION: /auth/v1/verify
       GOTRUE_MAILER_URLPATHS_RECOVERY: /auth/v1/verify
       GOTRUE_MAILER_AUTOCONFIRM: "true"
-      LOG_LEVEL: DEBUG
   auth_user:
     container_name: os_auth_user
-    image: supabase/gotrue:latest
+    build: ./gotrue/
     ports:
       - ${AUTH_PORT_USER}:${AUTH_PORT_USER}
     depends_on:
@@ -150,11 +154,11 @@ services:
       - postgres
       - -c
       - wal_level=logical
+      - -p ${POSTGRES_PORT_OWNER}
     environment:
       POSTGRES_DB: postgres
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
-    command: -p ${POSTGRES_PORT_OWNER}
     volumes:
       - postgres-owner-data:/var/lib/postgresql/data
   postgres_user:
@@ -166,11 +170,11 @@ services:
       - postgres
       - -c
       - wal_level=logical
+      - -p ${POSTGRES_PORT_USER}
     environment:
       POSTGRES_DB: postgres
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
-    command: -p ${POSTGRES_PORT_USER}
     volumes:
       - postgres-user-data:/var/lib/postgresql/data
   pgadmin:

@@ -20,10 +20,6 @@ services:
       - es-node-1-data:${ES_PATH}/data
       - es-node-1-logs:${ES_PATH}/logs
       - ./elastic/config_1/elasticsearch.yml:${ES_PATH}/config/elasticsearch.yml
-    ulimits:
-      memlock:
-        soft: -1
-        hard: -1
     logging:
       options:
         max-size: "25m"
@@ -35,10 +31,6 @@ services:
       - es-node-2-logs:${ES_PATH}/logs
       - es-snapshot:/usr/share/elasticsearch/backup
       - ./elastic/config_2/elasticsearch.yml:${ES_PATH}/config/elasticsearch.yml
-    ulimits:
-      memlock:
-        soft: -1
-        hard: -1
     logging:
       options:
         max-size: "25m"
@@ -49,10 +41,6 @@ services:
       - es-node-3-data:${ES_PATH}/data
       - es-node-3-logs:${ES_PATH}/logs
       - ./elastic/config_3/elasticsearch.yml:${ES_PATH}/config/elasticsearch.yml
-    ulimits:
-      memlock:
-        soft: -1
-        hard: -1
     logging:
       options:
         max-size: "25m"

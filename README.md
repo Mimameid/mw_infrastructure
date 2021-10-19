@@ -16,5 +16,5 @@
 
 4. For Dev run:
    `docker-compose -f docker-compose.yml -f docker-compose.dev.yml up -d`
-5. For Prod run:
+   For Prod run:
    `docker-compose -f docker-compose.yml -f docker-compose.prod.yml up -d`
